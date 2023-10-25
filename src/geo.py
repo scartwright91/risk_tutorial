@@ -12,11 +12,13 @@ class Country:
     def __init__(self, name: str, coords: list) -> None:
         self.name = name
         self.coords = coords
+        self.font = pg.font.SysFont(None, 24)
         self.polygon = Polygon(self.coords)
         self.center = self.get_center()
         self.units = random.randint(1, 3)
         self.color = (72, 126, 176)
         self.hovered = False
+        self.neighbours = None
 
     def update(self, mouse_pos: pg.Vector2) -> None:
         self.hovered = False
@@ -37,6 +39,7 @@ class Country:
         )
         draw_text(
             screen,
+            self.font,
             str(self.units),
             (255, 255, 255),
             self.center.x - scroll.x,
@@ -58,7 +61,9 @@ class World:
     def __init__(self) -> None:
         self.read_geo_data()
         self.countries = self.create_countries()
+        self.create_neighbours()
         self.scroll = pg.Vector2(3650, 395)
+        self.font = pg.font.SysFont(None, 24)
 
         # hovering countries panel
         self.hovered_country = None
@@ -117,6 +122,7 @@ class World:
         screen.blit(self.hover_surface, (1280 - 310, 720 - 110))
         draw_text(
             screen,
+            self.font,
             self.hovered_country.name,
             (255, 255, 255),
             1280 - 310 / 2,
@@ -126,6 +132,7 @@ class World:
         )
         draw_multiline_text(
             screen,
+            self.font,
             [f"Units: {str(self.hovered_country.units)}"],
             (255, 255, 255),
             1280 - 310 + 5,
@@ -133,3 +140,34 @@ class World:
             False,
             20,
         )
+
+    def create_neighbours(self) -> None:
+        for k, v in self.countries.items():
+            v.neighbours = self.get_country_neighbours(k)
+
+    def get_country_neighbours(self, country: str) -> list:
+        neighbours = []
+        country_poly = self.countries[country].polygon
+        for other_country_key, other_country_value in self.countries.items():
+            if country != other_country_key:
+                if country_poly.intersects(other_country_value.polygon):
+                    neighbours.append(other_country_key)
+        if country == "United Kingdom":
+            neighbours += ["Ireland", "France", "Iceland"]
+        elif country == "Ireland":
+            neighbours += ["United Kingdom", "Iceland"]
+        elif country == "Iceland":
+            neighbours += ["United Kingdom", "Ireland"]
+        elif country == "France":
+            neighbours += ["United Kingdom"]
+        elif country == "Denmark":
+            neighbours += ["Norway", "Sweden"]
+        elif country == "Norway":
+            neighbours += ["Denmark"]
+        elif country == "Sweden":
+            neighbours += ["Denmark"]
+        elif country == "Finland":
+            neighbours += ["Estonia"]
+        elif country == "Estonia":
+            neighbours += ["Finland"]
+        return neighbours

@@ -1,8 +1,7 @@
 import pygame as pg
 
 
-def draw_text(screen, text, color, x, y, center=False, size=20):
-    font = pg.font.SysFont(None, size)
+def draw_text(screen, font, text, color, x, y, center=False, size=20):
     text_surface = font.render(text, True, color)
     text_rect = text_surface.get_rect()
     if center:
@@ -12,8 +11,9 @@ def draw_text(screen, text, color, x, y, center=False, size=20):
     screen.blit(text_surface, text_rect)
 
 
-def draw_multiline_text(screen, multitext: list, color, x, y, center=False, size=20):
-    font = pg.font.SysFont(None, size)
+def draw_multiline_text(
+    screen, font, multitext: list, color, x, y, center=False, size=20
+):
     for text in multitext:
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect()
