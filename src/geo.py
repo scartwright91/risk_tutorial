@@ -19,6 +19,8 @@ class Country:
         self.color = (72, 126, 176)
         self.hovered = False
         self.neighbours = None
+        self.has_attacked = False
+        self.controlled_by = self.name
 
     def update(self, mouse_pos: pg.Vector2) -> None:
         self.hovered = False
@@ -69,6 +71,8 @@ class World:
         self.hovered_country = None
         self.hover_surface = pg.Surface((300, 100), pg.SRCALPHA)
         self.hover_surface.fill((25, 42, 86, 155))
+
+        self.battle_res = None
 
     def read_geo_data(self) -> None:
         with open("./data/country_coords.json", "r") as f:
@@ -171,3 +175,43 @@ class World:
         elif country == "Estonia":
             neighbours += ["Finland"]
         return neighbours
+
+    def battle(self, attacking_country:str, defending_country:str) -> None:
+
+        a_c = self.countries[attacking_country]
+        d_c = self.countries[defending_country]
+
+        a_c.has_attacked = True
+
+        res = {
+            "attacking_country": attacking_country,
+            "defending_country": defending_country,
+            "victory": False,
+            "attacking_country_losses": 0,
+            "defending_country_losses": 0
+        }
+
+        while (a_c.units > 1) and (d_c.units > 0):
+
+            if a_c.units - d_c.units > 2:
+                attack_dice = max(random.randint(1, 6), random.randint(1, 6))
+            else:
+                attack_dice = random.randint(1, 6)
+
+            defend_dice = random.randint(1, 6)
+
+            if attack_dice > defend_dice:
+                d_c.units -= 1
+                res["defending_country_losses"] += 1
+            else:
+                a_c.units -= 1
+                res["attacking_country_losses"] += 1
+
+            if d_c.units == 0:
+                res["victory"] = True
+
+        if res["victory"]:
+            d_c.units = 1
+            a_c.units -= 1
+
+        self.battle_res = res
